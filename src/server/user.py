@@ -1,4 +1,6 @@
 
+import json
+
 class User(object):
 
     def __init__(self, name, ip):
@@ -10,3 +12,7 @@ class User(object):
 
     def get_ip(self):
         return self.ip 
+
+    def to_json(self):
+        d = {"name": self.name, "ip": self.ip}
+        return json.dumps(d)
