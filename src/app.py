@@ -1,5 +1,5 @@
 
-from src import CodeEditor
+from widget import CodeEditor
 import sys
 from PyQt5.QtWidgets import QApplication
 
