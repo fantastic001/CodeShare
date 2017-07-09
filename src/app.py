@@ -1,12 +1,12 @@
 
-from widget import CodeEditor
+from GUI import AppWindow
 import sys
 from PyQt5.QtWidgets import QApplication
 
 app = QApplication(sys.argv)
 
-c = CodeEditor()
-c.show()
+appWindow = AppWindow()
+appWindow.show()
 
 sys.exit(app.exec_())
 
