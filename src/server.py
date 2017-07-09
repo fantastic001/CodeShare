@@ -40,5 +40,14 @@ def editor_release(group):
     manager.get_group_by_name(group).release_editor()
     return ""
 
+@app.route("/groups/<group>/code/", methods=["GET","POST"])
+def code_handling(group):
+    if request.method == "GET":
+        return manager.get_group_by_name(group).get_code()
+    else:
+        print(request.data)
+        manager.get_group_by_name(group).set_code(request.data)
+        return "OK"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
