@@ -29,7 +29,8 @@ class Client(object):
         return requests.get(self.getEndpointURL("/groups/%s/code/" % self.groupname)).text
 
     def request(self):
-        requests.post(self.getEndpointURL("/groups/%s/request/" % self.groupname), json={"name": self.username})
+        r = requests.post(self.getEndpointURL("/groups/%s/request/" % self.groupname), json={"name": self.username})
+        return r.json().get("status", "rejected") == "approved"
 
 
     def release(self):

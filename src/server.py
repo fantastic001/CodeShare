@@ -32,8 +32,11 @@ def who_edits(group):
 @app.route("/groups/<group>/request/", methods=["POST"])
 def request_insert(group):
     grp = manager.get_group_by_name(group)
-    grp.set_editor_by_name(request.get_json()["name"])
-    return ""
+    ok = grp.set_editor_by_name(request.get_json()["name"])
+    s = "rejected"
+    if ok:
+        s = "approved"
+    return json.dumps({"status": s})
 
 @app.route("/groups/<group>/release/", methods=["POST"])
 def editor_release(group):
