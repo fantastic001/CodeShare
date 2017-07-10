@@ -15,7 +15,7 @@ class AppWindow(QWidget):
 		
 		self.editGranted = False
 		self.editRequested = False
-		self.client = Client("0.0.0.0", 5000, "us1")
+		self.client = Client(argv[1], 5000, "us1")
 		self.client.join("gr1")
 		self.requestThread = RequestThread(self)
 		self.requestThread.start()
@@ -67,8 +67,9 @@ class AppWindow(QWidget):
 		
 	def bRlEditClicked(self, item):
 		self.editGranted = False
-		self.lEditState.setText("Not granted")
+		self.editRequested = False
 		self.client.release()
+		self.lEditState.setText("Not granted")
 		
 	def closeEvent(self, event):
 		self.requestThread.terminate()

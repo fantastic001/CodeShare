@@ -13,12 +13,10 @@ class RequestThread(QThread):
 	def run(self):
 		while self.running:
 			if self.appWindow.editRequested:
-				print ("rq thread rq")
 				if self.appWindow.client.request():
-					appWindow.RqEditAcceptedCallback()
+					self.appWindow.RqEditAcceptedCallback()
 			else:
-				print ("rq pass")
-			time.sleep(1)
+				time.sleep(1)
 	
 	def terminate(self):
 		self.running = False
