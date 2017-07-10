@@ -1,31 +1,35 @@
 import json
+
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 from .editor import CodeEditor
 from .hlaction import HlAction
 from client import Client
-from control import RequestThread
 
 class AppWindow(QWidget):
 	
 	hlModes = ["none", "cpp", "pas"]
 
-	def __init__(self, argv):
+	def __init__(self, argv, app):
 		super(AppWindow, self).__init__()
+		self.app = app
 		
 		self.editGranted = False
 		self.editRequested = False
+		self.textEdited = False
 		self.client = Client(argv[1], 5000, argv[2])
 		self.client.join("gr1")
-		self.requestThread = RequestThread(self)
-		self.requestThread.start()
+		self.requestTimer = QTimer(self)
+		self.requestTimer.setInterval(500)
+		self.requestTimer.timeout.connect(self.requestTimerHandler)
 		
 		# GUI elements
 		self.bDropMenu = QPushButton("Hl Mode")
 		self.bRqEdit = QPushButton("Rq Edit")
 		self.bRlEdit = QPushButton("Rl Edit")
 		self.lEditState = QLabel("Not granted")
-		self.codeEditor = CodeEditor()
+		self.codeEditor = CodeEditor(self)
 		
 		self.menu = QMenu()
 		for mode in self.hlModes:
@@ -47,6 +51,8 @@ class AppWindow(QWidget):
 		l1.addWidget(self.codeEditor)
 		self.setLayout(l1)
 		
+		self.requestTimer.start(500)
+		
 	def actionHlMode(self, mode):
 		try:
 			with open("hlData/" + mode + ".json") as f:
@@ -57,8 +63,9 @@ class AppWindow(QWidget):
 			self.codeEditor.setHl({})
 		
 	def bRqEditClicked(self, item):
-		self.editRequested = True
-		self.lEditState.setText("Requested")
+		if not self.editGranted:
+			self.editRequested = True
+			self.lEditState.setText("Requested")
 	
 	def RqEditAcceptedCallback(self):
 		self.editGranted = True
@@ -70,8 +77,17 @@ class AppWindow(QWidget):
 		self.editRequested = False
 		self.client.release()
 		self.lEditState.setText("Not granted")
-		
-	def closeEvent(self, event):
-		self.requestThread.terminate()
-		event.accept()
+
+	def requestTimerHandler(self):
+		if self.editRequested:
+			if self.client.request():
+				self.RqEditAcceptedCallback()
+				
+		if self.textEdited:
+			if self.editGranted:
+				self.client.sendCode(self.codeEditor.toPlainText())
+			self.textEdited = False
+			
+		if not self.editGranted:
+			self.codeEditor.setText(self.client.getCode())
 		
