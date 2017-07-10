@@ -2,6 +2,7 @@
 
 from server import * 
 import random
+import sys
 
 from flask import Flask, request
 
@@ -46,12 +47,12 @@ def editor_release(group):
 
 @app.route("/groups/<group>/code/", methods=["GET","POST"])
 def code_handling(group):
-    if request.method == "GET":
-        return manager.get_group_by_name(group).get_code()
-    else:
-        print(request.data)
-        manager.get_group_by_name(group).set_code(request.data)
-        return "OK"
+	if request.method == "GET":
+		return manager.get_group_by_name(group).get_code()
+	else:
+		print(request.data)
+		manager.get_group_by_name(group).set_code(request.data)
+		return "OK"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host=sys.argv[1], port=5000, debug=True)
