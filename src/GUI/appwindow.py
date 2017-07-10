@@ -11,14 +11,14 @@ class AppWindow(QWidget):
 	
 	hlModes = ["none", "cpp", "pas"]
 
-	def __init__(self, argv, app):
+	def __init__(self, argv):
 		super(AppWindow, self).__init__()
-		self.app = app
+		self.setWindowTitle("Code Share")
 		
 		self.editGranted = False
 		self.editRequested = False
 		self.textEdited = False
-		self.client = Client(argv[1], 5000, argv[2])
+		self.client = Client(argv[1], int(argv[2]), argv[3s])
 		self.client.join("gr1")
 		self.requestTimer = QTimer(self)
 		self.requestTimer.setInterval(500)
