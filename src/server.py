@@ -40,7 +40,8 @@ def request_insert(group):
 
 @app.route("/groups/<group>/release/", methods=["POST"])
 def editor_release(group):
-    manager.get_group_by_name(group).release_editor()
+    name = request.get_json().get("name", "")
+    manager.get_group_by_name(group).release_editor(name)
     return ""
 
 @app.route("/groups/<group>/code/", methods=["GET","POST"])

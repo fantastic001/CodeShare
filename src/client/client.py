@@ -34,7 +34,7 @@ class Client(object):
 
 
     def release(self):
-        requests.post(self.getEndpointURL("/groups/%s/release/" % self.groupname))
+        requests.post(self.getEndpointURL("/groups/%s/release/" % self.groupname), json={"name": self.username})
 
     def getCurrentEditor(self):
         return requests.get(self.getEndpointURL("/groups/%s/editor/" % self.groupname)).json().get("name", "")

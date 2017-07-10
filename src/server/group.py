@@ -48,11 +48,22 @@ class Group(object):
                 return False
         return False
     
-    def release_editor(self):
-        self.editing = None
-        if len(self.queue) > 0:
-            self.editing = self.queue[0]
-            self.queue = self.queue[1:]
+    def release_editor(self, name):
+        if self.editing == None:
+            for i in range(len(self.queue)):
+                if self.queue[i].get_name() == name:
+                    self.queue = self.queue[:i] + self.queue[i+1:]
+        else:
+            if self.editing.get_name() == name:
+                self.editing = None
+                if len(self.queue) > 0:
+                    self.editing = self.queue[0]
+                    self.queue = self.queue[1:]
+            else:
+                for i in range(len(self.queue)):
+                    if self.queue[i].get_name() == name:
+                        self.queue = self.queue[:i] + self.queue[i+1:]
+                
 
     def set_code(self, code):
         self.code = code 
