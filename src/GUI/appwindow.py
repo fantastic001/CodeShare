@@ -15,7 +15,7 @@ class AppWindow(QWidget):
 		
 		self.editGranted = False
 		self.editRequested = False
-		self.client = Client(argv[1], 5000, "us1")
+		self.client = Client(argv[1], 5000, argv[2])
 		self.client.join("gr1")
 		self.requestThread = RequestThread(self)
 		self.requestThread.start()
