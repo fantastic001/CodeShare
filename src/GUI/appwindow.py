@@ -7,6 +7,8 @@ from .editor import CodeEditor
 from .hlaction import HlAction
 from client import Client
 
+from control import RequestThread
+
 class AppWindow(QWidget):
 	
 	hlModes = ["none", "cpp", "pas"]
@@ -15,14 +17,11 @@ class AppWindow(QWidget):
 		super(AppWindow, self).__init__()
 		self.setWindowTitle("Code Share")
 		
-		self.editGranted = False
-		self.editRequested = False
-		self.textEdited = False
 		self.client = Client(argv[1], int(argv[2]), argv[3])
 		self.client.join("gr1")
-		self.requestTimer = QTimer(self)
-		self.requestTimer.setInterval(500)
-		self.requestTimer.timeout.connect(self.requestTimerHandler)
+		self.thread = RequestThread(self.client)
+		self.thread.requestAccepted.connect(self.RqEditAcceptedCallback)
+		self.thread.codeChanged.connect(self.codeChangedCallback)
 		
 		# GUI elements
 		self.bDropMenu = QPushButton("Hl Mode")
@@ -30,6 +29,8 @@ class AppWindow(QWidget):
 		self.bRlEdit = QPushButton("Rl Edit")
 		self.lEditState = QLabel("Not granted")
 		self.codeEditor = CodeEditor(self)
+		self.codeEditor.textChanged.connect(self.codeEditedCallback)
+
 		
 		self.menu = QMenu()
 		for mode in self.hlModes:
@@ -51,7 +52,6 @@ class AppWindow(QWidget):
 		l1.addWidget(self.codeEditor)
 		self.setLayout(l1)
 		
-		self.requestTimer.start(500)
 		
 	def actionHlMode(self, mode):
 		try:
@@ -62,32 +62,21 @@ class AppWindow(QWidget):
 		except:
 			self.codeEditor.setHl({})
 		
+	
+	def codeEditedCallback(self):
+		self.thread.codeEdited.emit(self.codeEditor.toPlainText())
+
 	def bRqEditClicked(self, item):
-		if not self.editGranted:
-			self.editRequested = True
-			self.lEditState.setText("Requested")
+		self.thread.editRequested.emit()
 	
 	def RqEditAcceptedCallback(self):
-		self.editGranted = True
-		self.editRequested = False
 		self.lEditState.setText("Granted")
 		
 	def bRlEditClicked(self, item):
-		self.editGranted = False
-		self.editRequested = False
-		self.client.release()
+		self.thread.editReleased.emit()
 		self.lEditState.setText("Not granted")
 
-	def requestTimerHandler(self):
-		if self.editRequested:
-			if self.client.request():
-				self.RqEditAcceptedCallback()
-				
-		if self.textEdited:
-			if self.editGranted:
-				self.client.sendCode(self.codeEditor.toPlainText())
-			self.textEdited = False
-			
-		if not self.editGranted:
-			self.codeEditor.setText(self.client.getCode())
-		
+	def codeChangedCallback(self, code):
+		self.codeEditor.setText(self.client.getCode())
+
+
