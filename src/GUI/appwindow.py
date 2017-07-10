@@ -3,16 +3,22 @@ from PyQt5.QtWidgets import *
 
 from .editor import CodeEditor
 from .hlaction import HlAction
+from client import Client
+from control import RequestThread
 
 class AppWindow(QWidget):
 	
 	hlModes = ["none", "cpp", "pas"]
 
-	def __init__(self):
+	def __init__(self, argv):
 		super(AppWindow, self).__init__()
 		
 		self.editGranted = False
 		self.editRequested = False
+		self.client = Client("0.0.0.0", 5000, "us1")
+		self.client.join("gr1")
+		self.requestThread = RequestThread(self)
+		self.requestThread.start()
 		
 		# GUI elements
 		self.bDropMenu = QPushButton("Hl Mode")
@@ -53,16 +59,18 @@ class AppWindow(QWidget):
 	def bRqEditClicked(self, item):
 		self.editRequested = True
 		self.lEditState.setText("Requested")
-		while not self.editGranted and self.editRequested:
-			# wait on timer before sending edit request
-			response = '0' # send edit request to the server
-			if response == '1':
-				self.editGranted = True
-				self.editRequested = False
-				self.lEditState.setText("Granted")
+	
+	def RqEditAcceptedCallback(self):
+		self.editGranted = True
+		self.editRequested = False
+		self.lEditState.setText("Granted")
 		
 	def bRlEditClicked(self, item):
 		self.editGranted = False
 		self.lEditState.setText("Not granted")
+		self.client.release()
 		
+	def closeEvent(self, event):
+		self.requestThread.terminate()
+		event.accept()
 		
