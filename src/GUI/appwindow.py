@@ -30,8 +30,6 @@ class AppWindow(QWidget):
 		self.lEditState = QLabel("Not granted")
 		self.codeEditor = CodeEditor(self)
 		self.codeEditor.textChanged.connect(self.codeEditedCallback)
-
-		
 		self.menu = QMenu()
 		for mode in self.hlModes:
 			action = HlAction(mode, self)
@@ -67,16 +65,18 @@ class AppWindow(QWidget):
 		self.thread.codeEdited.emit(self.codeEditor.toPlainText())
 
 	def bRqEditClicked(self, item):
-		self.thread.editRequested.emit()
+		if not self.thread.getGranted():
+			self.thread.setRequested(True)
+			self.lEditState.setText("Requested")
 	
 	def RqEditAcceptedCallback(self):
 		self.lEditState.setText("Granted")
 		
 	def bRlEditClicked(self, item):
-		self.thread.editReleased.emit()
+		self.thread.setRequested(False)
 		self.lEditState.setText("Not granted")
 
 	def codeChangedCallback(self, code):
-		self.codeEditor.setText(self.client.getCode())
+		self.codeEditor.setText(code)
 
 
