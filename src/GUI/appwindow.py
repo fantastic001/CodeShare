@@ -18,7 +18,7 @@ class AppWindow(QWidget):
 		self.editGranted = False
 		self.editRequested = False
 		self.textEdited = False
-		self.client = Client(argv[1], int(argv[2]), argv[3s])
+		self.client = Client(argv[1], int(argv[2]), argv[3])
 		self.client.join("gr1")
 		self.requestTimer = QTimer(self)
 		self.requestTimer.setInterval(500)
