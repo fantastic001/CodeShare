@@ -16,6 +16,9 @@ class User(object):
     
     def getPassword(self):
         return self.password
+		
+	def setPasswprd(self, password):
+		self.password = password
 
     def to_json(self):
         d = {"name": self.name, "ip": self.ip}

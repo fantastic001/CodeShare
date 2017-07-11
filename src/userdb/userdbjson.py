@@ -34,10 +34,8 @@ db = {
 class UserDBJson:
 	
 	def __init__(self, dbFileName):
-		self.dbDict = { "users" : [], "groups" : [] }
 		self.dbFileName = dbFileName
-		with open(dbFileName) as dbFile:
-			self.dbDict = json.load(dbFile)
+		self.dbDict = json.load(open(dbFileName))
 		self.users = self.dbDict["users"]
 		self.groups = self.dbDict["groups"]
 		
@@ -65,6 +63,13 @@ class UserDBJson:
 		user = self.getUser(username)
 		if user == None: return False
 		return True if user[password] == hashlib.sha256(password.encode("utf-8")).hexdigest() else False
+		
+	def removeUser(self, username):
+		for user in self.users:
+			if user["username"] == username:
+				del self.users[username]
+				return True
+		return False
 		
 	def getUsers(self):
 		return [self.genUser(user) for user in self.users]
@@ -112,7 +117,7 @@ class UserDBJson:
 	def removeGroup(self, groupId):
 		for group in self.groups:
 			if group["id"] == groupId:
-				del group[groupId]
+				del self.groups[groupId]
 				return True
 		return False
 		
