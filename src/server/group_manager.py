@@ -13,7 +13,7 @@ class GroupManager(object):
         if there's no uch group, create new grup
         """
         for g in self.groups:
-            if g.get_name() == name:
+            if g.getName() == name:
                 return g 
-        self.groups.append(Group(name))
+        self.groups.append(Group(name, None))
         return self.get_group_by_name(name)

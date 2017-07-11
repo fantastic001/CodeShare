@@ -16,14 +16,14 @@ manager = GroupManager()
 @app.route("/groups/<group>/register/", methods=["POST"])
 def register(group):
     grp = manager.get_group_by_name(group)
-    grp.add_user(User(request.get_json().get("name", "user-%d" % int(random.random()*1000)), "0.0.0.0"))
+    grp.addMember(User(request.get_json().get("name", "user-%d" % int(random.random()*1000)), "0.0.0.0"))
     return "OK"
 
 
 
 @app.route("/groups/<group>/editor/")
 def who_edits(group):
-    editor = manager.get_group_by_name(group).who_edits()
+    editor = manager.get_group_by_name(group).whoEdits()
     if editor != None:
         return editor.to_json()
     else:
@@ -33,7 +33,7 @@ def who_edits(group):
 @app.route("/groups/<group>/request/", methods=["POST"])
 def request_insert(group):
     grp = manager.get_group_by_name(group)
-    ok = grp.set_editor_by_name(request.get_json()["name"])
+    ok = grp.setEditorByName(request.get_json()["name"])
     s = "rejected"
     if ok:
         s = "approved"
@@ -42,16 +42,16 @@ def request_insert(group):
 @app.route("/groups/<group>/release/", methods=["POST"])
 def editor_release(group):
     name = request.get_json().get("name", "")
-    manager.get_group_by_name(group).release_editor(name)
+    manager.get_group_by_name(group).releaseEditor(name)
     return ""
 
 @app.route("/groups/<group>/code/", methods=["GET","POST"])
 def code_handling(group):
 	if request.method == "GET":
-		return manager.get_group_by_name(group).get_code()
+		return manager.get_group_by_name(group).getCode()
 	else:
 		print(request.data)
-		manager.get_group_by_name(group).set_code(request.data)
+		manager.get_group_by_name(group).setCode(request.data)
 		return "OK"
 
 if __name__ == '__main__':

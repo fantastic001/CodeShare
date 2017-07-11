@@ -3,15 +3,19 @@ import json
 
 class User(object):
 
-    def __init__(self, name, ip):
+    def __init__(self, name, ip="", password=""):
         self.name = name 
         self.ip = ip 
+        self.password = password
 
-    def get_name(self):
+    def getName(self):
         return self.name 
 
-    def get_ip(self):
+    def getIp(self):
         return self.ip 
+    
+    def getPassword(self):
+        return self.password
 
     def to_json(self):
         d = {"name": self.name, "ip": self.ip}

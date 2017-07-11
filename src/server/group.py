@@ -1,17 +1,28 @@
 
+from .snapshot import * 
+
 class Group(object):
-    
-	def __init__(self, name):
+	
+	def __init__(self, name, id=0, owner=None):
 		self.name = name 
+		self.id = id 
 		self.editing = None
+		self.owner = owner
 		self.queue = []
-		self.users = [] 
+		self.members = []
 		self.code = ""
+		self.snapshots = []
 	
-	def add_user(self, user):
-		self.users.append(user)
+	def addMember(self, user):
+		self.members.append(user)
 	
-	def who_edits(self):
+	def getMembers(self):
+		return self.members 
+
+	def setMembers(self, m):
+		self.members = m 
+	
+	def whoEdits(self):
 		"""
 		Returns User object who is currently editing
 	
@@ -19,15 +30,15 @@ class Group(object):
 		"""
 		return self.editing
 	
-	def get_user_by_name(self, name):
-		for user in self.users:
-			if user.get_name() == name:
+	def getMemberByName(self, name):
+		for user in self.members:
+			if user.getName() == name:
 				return user 
 		return None
 	
-	def set_editor_by_name(self, name):
-		user = self.get_user_by_name(name)
-		if self.editing != None and self.editing.get_name() == name:
+	def setEditorByName(self, name):
+		user = self.getMemberByName(name)
+		if self.editing != None and self.editing.getName() == name:
 			return True
 		if len(self.queue) == 0:
 			if self.editing == None:
@@ -39,31 +50,46 @@ class Group(object):
 			if self.editing == None:
 				self.editing = self.queue[0]
 				self.queue = self.queue[1:]
-				return self.editing.get_name() == name
+				return self.editing.getName() == name
 			else:
 				for q in self.queue:
-					if q.get_name() == name:
+					if q.getName() == name:
 						return False
 				self.queue.append(user)
 				return False
 		return False
 	
-	def release_editor(self, name):
+	def releaseEditor(self, name):
 		for i in range(len(self.queue)):
-			if self.queue[i].get_name() == name:
+			if self.queue[i].getName() == name:
 				del self.queue[i]
-		if self.editing.get_name() == name:
+		if self.editing.getName() == name:
 			self.editing = None
 			if len(self.queue) > 0:
 				self.editing = self.queue[0]
-				del self.queue[0]            
+				del self.queue[0]		
+	def getId(self):
+		return self.id 
+
+	def addSnapshot(self, s):
+		self.snapshots.append(s)
+
+	def getSnapshots(self):
+		return self.napshots
+
+	def getCurrentSnapshot(self):
+		if len(self.snapshots) == 0:
+			self.addSnapshot(Snapshot())
+		return self.snapshots[-1]
+
+	def setSnapshots(self, s):
+		self.snapshots = s 
 	
-	def set_code(self, code):
-		self.code = code 
-	
-	def get_code(self):
-		return self.code
-	
-	def get_name(self):
+	def getName(self):
 		return self.name 
 	
+	def getCode(self):
+		return self.getCurrentSnapshot().getCode()
+
+	def setCode(self, code):
+		self.getCurrentSnapshot().setCode(code)
