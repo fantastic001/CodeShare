@@ -2,6 +2,10 @@ import json
 import hashlib
 import time
 
+from server import Group
+"""from .user import *
+from .snap_shot import *"""
+
 """
 db = {
 	"users" : [
@@ -16,11 +20,9 @@ db = {
 			"name" : <name>,
 			"owner" : <username>,
 			"members" : [<username>,...]
-			"time" : <lastEditUNIXTime>,
 			"snapshots" : [
 				{
 					"id" : <id>,
-					"files" : [<fileName>, ...]
 				},...
 			]
 		},...
@@ -81,37 +83,50 @@ class UserDBJson:
 			"id" : newId,
 			"name" : groupname,
 			"owner" : owner.getUsermane(),
-			"members" : []
-			"time" : int(time.time()),
+			"members" : [],
 			"snapshots" : [
 			{
-				"id" : 0,
-				"files" : []
+				"id" : 0
 			}] })
-		return Group("""?""")
+		return self.genGroup(self.groups[-1])
 	
 	def getGroups(self):
-		
+		return [self.genGroup(group) for group in self.groups]
 		
 	def getGroup(self, grupId):
-		pass
+		for group in self.groups:
+			if group["id"] == groupId:
+				return self.genGroup(group)
+		return None
 		
 	def updateGruop(self, group):
-		pass
+		for elem in self.groups:
+			if elem["id"] == group.getId():
+				elem["name"] = group.getName()
+				elem["members"] = group.getMembers()
+				elem["snapshots"] = [{ "id" : ss.getId() } for ss in group.getSnapshots()]
+				return True
+		return False
 		
 	def removeGroup(self, groupId):
-		pass
+		for group in self.groups:
+			if group["id"] == groupId:
+				del group[groupId]
+				return True
+		return False
 		
 	# generators
-	def genUser(self, user):
-		return None
+	def genUser(self, user): #name id password
+		return User(user["name"], "ip legacy", user["password"])
 		
 	def genGroup(self, group):
-		return None
+		group = Group(group["name"], group["id"], getUser(group["owner"]))
+		group.setMembers(group["members"])
+		group.setSnapshots([Snapshot(ss["id"])] for ss in group["snapshots"])
 		
 		
 		
-if __name__ == "__main__":
+"""if __name__ == "__main__":
 	db = UserDBJson("db.json")
 	db.registerUser("Nikola", "car")
 	db.registerUser("Stefan", "password")
@@ -120,7 +135,7 @@ if __name__ == "__main__":
 	print (db.confirmUserLogin("Nikola", "password"))
 	print (db.confirmUserLogin("Nikola", "car"))
 	print (db.confirmUserLogin("Stefan", "Nikola"))
-	print (db.confirmUserLogin("Stefan", "password"))
+	print (db.confirmUserLogin("Stefan", "password"))"""
 	
 	
 	
