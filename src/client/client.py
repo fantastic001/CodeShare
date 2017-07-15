@@ -9,7 +9,7 @@ class Client(object):
         self.address = address
         self.port = port 
         self.username = username 
-        self.groupname = ""
+        self.groupid = None
         data = {}
         if self.username == None:
             data["type"] = "guest"
@@ -29,32 +29,52 @@ class Client(object):
     def getEndpointURL(self, endpoint):
         return "http://%s:%d%s" % (self.address, self.port, endpoint)
 
-    def join(self, groupname):
-        self.groupname = groupname
-        r = self.session.post(self.getEndpointURL("/groups/%s/register/" % groupname), json={"name": self.username})
-        print(r.status_code)
+    def join(self, groupid):
+        self.groupid = groupid
+        r = self.session.get(self.getEndpointURL("/snapshots/%d" % int(groupid)))
+        self.snapshot = r["snnapshotId"]
+        self.editor = r["editor"]
+        self.snapshots = r["snapsotsIds"]
+
+    def reload(self):
+        groupid = self.groupid
+        r = self.session.get(self.getEndpointURL("/snapshots/%d" % int(groupid)))
+        self.snapshot = r["snnapshotId"]
+        self.editor = r["editor"]
+        self.snapshots = r["snapsotsIds"]
+
 
     def sendCode(self, code):
-        if self.groupname == "":
+        if self.groupid == None:
             return
-        r = requests.post(self.getEndpointURL("/groups/%s/code/" % self.groupname), code, headers={"Content-type": "text/plain"})
+        r = requests.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), code, headers={"Content-type": "text/plain"})
+
 
     def getCode(self):
-        return requests.get(self.getEndpointURL("/groups/%s/code/" % self.groupname)).text
+        return requests.get(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)))).text
 
     def request(self):
-        r = requests.post(self.getEndpointURL("/groups/%s/request/" % self.groupname), json={"name": self.username})
-        return r.json().get("status", "rejected") == "approved"
+        d = {
+            "action": "request"
+        }
+        r = requests.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d)
+        return r.json().get("status", "viewer") == "editor"
 
 
     def release(self):
-        requests.post(self.getEndpointURL("/groups/%s/release/" % self.groupname), json={"name": self.username})
+        d = {
+            "action": "release"
+        }
+        r = requests.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d)
 
     def getCurrentEditor(self):
-        return requests.get(self.getEndpointURL("/groups/%s/editor/" % self.groupname)).json().get("name", "")
+        self.reload()
+        return self.editor
 
     def isAbleToEdit(self):
-        return self.getCurrentEditor() == self.username
+        self.reload()
+        return self.editor == self.username 
 
     def canRequest(self):
-        return self.getCurrentEditor() == ""
+        self.reload()
+        return self.editor == ""
