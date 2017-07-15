@@ -6,7 +6,7 @@
 		},
 		{
 			"username" : "Stefan", 
-			"password" : "0d80da802094e4abd5ed8612c725faf64f70f471c2e26778ff91a6a3e4c88597"
+			"password" : "Stefan"
 		}
 	],
 	"groups" : [
@@ -14,10 +14,10 @@
 			"id" : 1,
 			"name" : "Init grupa",
 			"owner" : "Stefan",
-			"members" : ["Nikola"],
+			"members" : ["Nikola"]
 			"snapshots" : [
 				{
-					"id" : 0
+					"id" : 0,
 				}
 			]
 		}

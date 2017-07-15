@@ -1,6 +1,6 @@
 # coding: UTF-8
  
-import random, sys, json , hashlib, time, os
+import random, sys, json, hashlib, time, os
 
 from flask import Flask, request
 
@@ -60,23 +60,26 @@ def aut():
 	if type == "user":
 		username = request.get_json().get("username", "")
 		password = request.get_json().get("password", "")
+		print ("user", username, password)
 		if len(username) == 0 or len(password) == 0:
 			ret["errorCode"] = 2
-		elif db.confirmUserLogin(username, hashPassword(password)):
-			ret["token"] = tokenManager.newUser(username)
-			if ret["token"] == "": 
-				ret["token"] = tokenManager.getToken(username)
-				if ret["token"] == "":
-					ret["errorCode"] = 3
 		else:
-			ret["errorCode"] = 1
+			user = db.confirmUserLogin(username, hashPassword(password))
+			if user != None:
+				ret["token"] = tokenManager.newUser(user)
+				if ret["token"] == "": 
+					ret["token"] = tokenManager.getToken(user)
+					if ret["token"] == "":
+						ret["errorCode"] = 3
+			else:
+				ret["errorCode"] = 3
 	elif type == "guest":
 		ret["token"] = tokenManager.newGuest()
 		if ret["token"] == -1: 
 			ret["errorCode"] = 4
 		elif ret["token"] == "":
 			ret["errorCode"] = 3
-	else: ret["errorCode"] = 2
+	else: ret["errorCode"] = 1
 	return json.dumps(ret)
 
 	
@@ -184,7 +187,6 @@ def grouAction():
 			else:
 				pass # group info update
 		elif request.method == "DELETE":
-			# delete files form disc
 			groupid = request.get_json().get("groupid", "")
 			group = getGroup(groupid)
 			if group == None:
@@ -218,32 +220,24 @@ ret : {
 @app.route("/snapshots/<groupid>", methods=["GET", "POST"])
 def snapshotAction(groupid):
 	ret = { "errorCode" : 0 }
-	print (1)
 	if not "token" in request.headers: 
 		ret["errorCode"] = 2
 	else:
-		print (2)
 		id = -1
 		try: id = int(groupid)
 		except: pass
-		print (activeGroups)
-		print (id)
 		group = getGroup(id)
 		if group == None:
 			ret["errorCode"] = 3
 		else:
-			print (3)
 			if request.method == "GET":
-				print (4)
 				ret["snapshotIds"] = [ss.getId() for ss in group.getSnapshots()]
 				if not groupid in activeGroups:
 					activeGroups["snapshotId"] = { "editor" : "", "snapshot" : len(group.getSnapshots()) - 1 }
-				ret["snapshotId"] = activeGroups[group.getId()].getCurrentSnapshot().getId()
+				ret["snapshotId"] = activeGroups[id].getCurrentSnapshot().getId()
 				ret["editor"] = activeGroups[group.getId()].whoEdits()
 				if ret["editor"] == None: ret["editor"] = ""
-				else: ret["editor"] = ret["editor"].getName()
 			elif request.method == "POST":
-				print (5)
 				newId = group.getSnapshots()[-1].getId() + 1
 				# copy current text file to new file
 				group.addSnapshot(Snapshot(newId))
@@ -251,6 +245,7 @@ def snapshotAction(groupid):
 			else:
 				ret["errorCode"] = 1
 	return json.dumps(ret)
+	
 	
 """ code
 GET args : {}
@@ -265,7 +260,9 @@ ret : {
 		1 - invalid http method /
 		2 - token not sent /
 		3 - invalid groupid parameter /
-		4 - invalid snapshotid parameter >
+		4 - invalid snapshotid parameter /
+		5 - could not fetch the code /
+		6 - invalid PUT action >
 """
 @app.route("/code/<groupid>/<snapshotid>", methods=["GET", "POST", "PUT"])
 def codeAction(groupid, snapshotid):
@@ -283,78 +280,49 @@ def codeAction(groupid, snapshotid):
 			id = -1
 			try: id = int(snapshotid)
 			except: pass
-			group = db.getGroup(id)
-			if group == None:
+			snapshot = Snapshot(id)
+			if not group.hasSnapshot(snapshot):
 				ret["errorCode"] = 4
 			else:
 				if request.method == "GET":
-					pass
+					if group.getCode() != None:
+						return group.getCode()
+					else: 
+						code = db.getCode(group, snapshot)
+						if code == None:
+							ret["errorCode"] = 5
+						else:
+							group.setCode(code)
+							return group.getCode()
 				elif request.method == "POST":
-					pass
+					group.setCode(request.data)
 				elif request.method == "PUT":
-					pass
+					action = request.get_json().get("action", "")
+					if action == "request":
+						if group.setEditor(tokenManager.getUser(request.headers["token"])):
+							ret["status"] = "editor"
+						else:
+							ret["status"] = "viewer"
+					elif action == "release":
+						group.releaseEditor(tokenManager.getUser(request.headers["token"]))
+					else:
+						ret["errorCode"] = 6
 				else:
 					ret["errorCode"] = 1
 	return json.dumps(ret)
-	
-	
-	
-	
-	
-	
-	
-@app.route("/groups/<group>/register/", methods=["POST"])
-def register(group):
-    grp = groupManager.get_group_by_name(group)
-    grp.addMember(User(request.get_json().get("name", "user-%d" % int(random.random()*1000)), "0.0.0.0"))
-    return "OK"
-
-
-@app.route("/groups/<group>/editor/")
-def who_edits(group):
-    editor = groupManager.get_group_by_name(group).whoEdits()
-    if editor != None:
-        return editor.to_json()
-    else:
-        return "{}"
-
-
-@app.route("/groups/<group>/request/", methods=["POST"])
-def request_insert(group):
-    grp = groupManager.get_group_by_name(group)
-    ok = grp.setEditorByName(request.get_json()["name"])
-    s = "rejected"
-    if ok:
-        s = "approved"
-    return json.dumps({"status": s})
-
-@app.route("/groups/<group>/release/", methods=["POST"])
-def editor_release(group):
-    name = request.get_json().get("name", "")
-    groupManager.get_group_by_name(group).releaseEditor(name)
-    return ""
-
-@app.route("/groups/<group>/code/", methods=["GET","POST"])
-def code_handling(group):
-	if request.method == "GET":
-		return groupManager.get_group_by_name(group).getCode()
-	else:
-		print(request.data)
-		groupManager.get_group_by_name(group).setCode(request.data)
-		return "OK"
 		
 def hashPassword(password):
 	return hashlib.sha256(password.encode("utf-8")).hexdigest()
 	
 def getGroup(groupid):
-	if groupid in activeGroups:	return activeGroups[groupid]
-	else: return db.getGroup(groupid)
+	if not groupid in activeGroups:	
+		activeGroups[groupid] = db.getGroup(groupid)
+	return activeGroups[groupid]
 
 # args: host ip address
 if __name__ == '__main__':
 	try:
 		db = UserDBJson("userdb/db.json")
-		activeGroups[1] = Group("grupa1", 1, "Stefan")
 		app.run(host=sys.argv[1], port=5000, debug=True)
 	except FileNotFoundError as e:
 		print ("DB file not found.")

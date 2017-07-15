@@ -62,7 +62,7 @@ class UserDBJson:
 	def confirmUserLogin(self, username, password):
 		user = self.getUser(username)
 		if user == None: return False
-		return True if user.getPassword() == password else False
+		return (user if user.getPassword() == password else None)
 		
 	def removeUser(self, username):
 		for user in self.users:
@@ -88,18 +88,20 @@ class UserDBJson:
 		self.groups.append({
 			"id" : newId,
 			"name" : groupname,
-			"owner" : owner.getUsermane(),
+			"owner" : owner.getUsername(),
 			"members" : [],
 			"snapshots" : [
 			{
 				"id" : 0
 			}] })
+		# create folder structure and 0-th snapshot
+		self.dumpBase()
 		return self.genGroup(self.groups[-1])
 	
 	def getGroups(self):
 		return [self.genGroup(group) for group in self.groups]
 		
-	def getGroup(self, grupId):
+	def getGroup(self, groupId):
 		for group in self.groups:
 			if group["id"] == groupId:
 				return self.genGroup(group)
@@ -110,6 +112,8 @@ class UserDBJson:
 			if elem["id"] == group.getId():
 				elem["name"] = group.getName()
 				elem["members"] = group.getMembers()
+				# check for diferences in snapshot lists and delete or create files
+				# use group.getCode
 				elem["snapshots"] = [{ "id" : ss.getId() } for ss in group.getSnapshots()]
 				return True
 		return False
@@ -118,17 +122,31 @@ class UserDBJson:
 		for group in self.groups:
 			if group["id"] == groupId:
 				del self.groups[groupId]
+				# delete form disc
 				return True
 		return False
 		
+	def getCode(self, group, snapshot):
+		for gr in self.groups:
+			if gr["id"] == group.getId():
+				ssId = snapshot.getId()
+				try:
+					with open("userdb/data/" + str(gr["id"]) + "/" + str(ssId)) as codeFile:
+						return codeFile.read()
+				except: 
+					print ("Unable to open requested file: " + "userdb/data/" + str(gr["id"]) + "/" + str(ssId))
+					return None
+		return None
+			
+		
 	# generators
-	def genUser(self, user): #name id password
-		return User(user["name"], "ip legacy", user["password"])
+	def genUser(self, user): # remove ip
+		return User(user["username"], user["password"])
 		
 	def genGroup(self, group):
-		group = Group(group["name"], group["id"], getUser(group["owner"]))
-		group.setMembers(group["members"])
-		group.setSnapshots([Snapshot(ss["id"])] for ss in group["snapshots"])
+		return Group(group["name"], group["id"], self.getUser(group["owner"]), group["members"], 
+			[Snapshot(ss["id"]) for ss in group["snapshots"]])
+		
 		
 		
 		
