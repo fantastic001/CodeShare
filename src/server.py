@@ -237,6 +237,7 @@ def snapshotAction(groupid):
 				ret["snapshotId"] = activeGroups[id].getCurrentSnapshot().getId()
 				ret["editor"] = activeGroups[group.getId()].whoEdits()
 				if ret["editor"] == None: ret["editor"] = ""
+				else: ret["editor"] = ret["editor"].getName()
 			elif request.method == "POST":
 				newId = group.getSnapshots()[-1].getId() + 1
 				# copy current text file to new file
