@@ -17,8 +17,10 @@ class AppWindow(QWidget):
         def __init__(self, argv):
                 super(AppWindow, self).__init__()
                 self.setWindowTitle("Code Share")
-                
-                self.client = Client(argv[1], int(argv[2]), "Stefan", "Stefan")
+                if len(argv) > 3: 
+                    self.client = Client(argv[1], int(argv[2]), argv[3], argv[4])
+                else:
+                    self.client = Client(argv[1], int(argv[2]))
                 self.client.join(1)
                 self.thread = RequestThread(self.client)
                 self.thread.requestAccepted.connect(self.RqEditAcceptedCallback)
