@@ -54,7 +54,7 @@ ret : {
 }
 """
 @app.route("/aut/", methods=["POST"])
-def aut(group):
+def aut():
 	ret = { "errorCode" : 0, "token" : "" }
 	type = request.get_json().get("type", "")
 	if type == "user":
@@ -113,27 +113,27 @@ def userAction():
 		else:
 			db.registerUser(username, hashPassword(password))
 	elif request.method == "PUT":
-		if not "token" in request.header: 
+		if not "token" in request.headers: 
 			ret["errorCode"] = 2
 		else:
 			password = request.get_json().get("password", "")
 			if len(password) == 0: 
 				ret["errorCode"] = 3
 			else:
-				user = db.getUser(tokenManager.getUser(request.header["token"]))
+				user = db.getUser(tokenManager.getUser(request.headers["token"]))
 				user.setPassWord(hashPassword(password))
 				db.updateUser(user)
 	elif request.method == "DELETE":
-		if not "token" in request.header: 
+		if not "token" in request.headers: 
 			ret["errorCode"] = 2
 		else:
 			password = request.get_json().get("password", "")
 			if len(password) == 0: 
 				ret["errorCode"] = 3
 			else:
-				db.removeUser(tokenManager.getUser(request.header["token"]))
+				db.removeUser(tokenManager.getUser(request.headers["token"]))
 	else: ret["errorCode"] = 1
-	return ret
+	return json.dumps(ret)
 
 	
 """ group
@@ -161,10 +161,10 @@ ret : {
 @app.route("/grups/", methods=["GET", "POST", "PUT", "DELETE"])
 def grouAction():
 	ret = { "errorCode" : 0 }
-	if not "token" in request.header: 
+	if not "token" in request.headers: 
 		ret["errorCode"] = 2
 	else:
-		user = db.getUser(tokenManager.getUser(request.header["token"]))
+		user = db.getUser(tokenManager.getUser(request.headers["token"]))
 		if request.method == "GET":
 			ret["ownedGroups"] = []
 			for group in db.getGroups():
@@ -198,7 +198,7 @@ def grouAction():
 					else:
 						del activeGroups[groupid]
 		else: ret["errorCode"] = 1
-	return ret
+	return json.dumps(ret)
 	
 	
 """ snapshots
@@ -218,30 +218,39 @@ ret : {
 @app.route("/snapshots/<groupid>", methods=["GET", "POST"])
 def snapshotAction(groupid):
 	ret = { "errorCode" : 0 }
-	if not "token" in request.header: 
+	print (1)
+	if not "token" in request.headers: 
 		ret["errorCode"] = 2
 	else:
+		print (2)
 		id = -1
 		try: id = int(groupid)
 		except: pass
+		print (activeGroups)
+		print (id)
 		group = getGroup(id)
 		if group == None:
 			ret["errorCode"] = 3
 		else:
+			print (3)
 			if request.method == "GET":
-				ret[snapshotIds] = [ss.getId() for ss in group.getSnapshots()]
-				if not snapshotid in activeGroups:
-					activeGroups[snapshotId] = { "editor" : "", "snapshot" : len(group.getSnapshots) - 1 }
-				ret[snapshotid] = activeGroups[group.getId()]["snapshot"]
-				ret[editor] = activeGroups[group.getId()]["snapshot"]
+				print (4)
+				ret["snapshotIds"] = [ss.getId() for ss in group.getSnapshots()]
+				if not groupid in activeGroups:
+					activeGroups["snapshotId"] = { "editor" : "", "snapshot" : len(group.getSnapshots()) - 1 }
+				ret["snapshotId"] = activeGroups[group.getId()].getCurrentSnapshot().getId()
+				ret["editor"] = activeGroups[group.getId()].whoEdits()
+				if ret["editor"] == None: ret["editor"] = ""
+				else: ret["editor"] = ret["editor"].getName()
 			elif request.method == "POST":
+				print (5)
 				newId = group.getSnapshots()[-1].getId() + 1
 				# copy current text file to new file
 				group.addSnapshot(Snapshot(newId))
 				ret["snapshotId"] = newId
 			else:
 				ret["errorCode"] = 1
-	return ret
+	return json.dumps(ret)
 	
 """ code
 GET args : {}
@@ -261,7 +270,7 @@ ret : {
 @app.route("/code/<groupid>/<snapshotid>", methods=["GET", "POST", "PUT"])
 def codeAction(groupid, snapshotid):
 	ret = { "errorCode" : 0 }
-	if not "token" in request.header: 
+	if not "token" in request.headers: 
 		ret["errorCode"] = 2
 	else:
 		id = -1
@@ -286,7 +295,7 @@ def codeAction(groupid, snapshotid):
 					pass
 				else:
 					ret["errorCode"] = 1
-	return ret
+	return json.dumps(ret)
 	
 	
 	
@@ -345,6 +354,7 @@ def getGroup(groupid):
 if __name__ == '__main__':
 	try:
 		db = UserDBJson("userdb/db.json")
+		activeGroups[1] = Group("grupa1", 1, "Stefan")
 		app.run(host=sys.argv[1], port=5000, debug=True)
 	except FileNotFoundError as e:
 		print ("DB file not found.")

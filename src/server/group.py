@@ -9,7 +9,7 @@ class Group(object):
 		self.owner = owner
 		self.members = []
 		self.snapshots = []
-		self.current
+		self.currentSs = len(self.snapshots) - 1
 		self.queue = []
 		self.editing = None
 	
@@ -79,8 +79,9 @@ class Group(object):
 
 	def getCurrentSnapshot(self):
 		if len(self.snapshots) == 0:
-			self.addSnapshot(Snapshot())
+			self.addSnapshot(Snapshot(0))
 		return self.snapshots[-1]
+		#return self.snapshots[self.currentSs]
 
 	def setSnapshots(self, s):
 		self.snapshots = s 
@@ -96,3 +97,4 @@ class Group(object):
 		
 	def getOwner(self):
 		return self.owner
+	
