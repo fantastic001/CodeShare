@@ -3,15 +3,15 @@ from .snapshot import *
 
 class Group(object):
 	
-	def __init__(self, name, id, owner=None):
-		self.name = name 
+	def __init__(self, name, id, owner):
 		self.id = id 
-		self.editing = None
+		self.name = name 
 		self.owner = owner
-		self.queue = []
 		self.members = []
-		self.code = ""
 		self.snapshots = []
+		self.current
+		self.queue = []
+		self.editing = None
 	
 	def addMember(self, user):
 		self.members.append(user)

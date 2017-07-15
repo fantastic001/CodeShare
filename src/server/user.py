@@ -21,5 +21,5 @@ class User(object):
 		self.password = password
 
     def to_json(self):
-        d = {"name": self.name, "ip": self.ip}
+        d = { "name": self.name, "ip": self.ip }
         return json.dumps(d)
