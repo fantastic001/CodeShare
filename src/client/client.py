@@ -38,9 +38,9 @@ class Client(object):
     def join(self, groupid):
         self.groupid = groupid
         r = self.session.get(self.getEndpointURL("/snapshots/%d" % int(groupid))).json()
-        self.snapshot = r["snnapshotId"]
+        self.snapshot = r["snapshotId"]
         self.editor = r["editor"]
-        self.snapshots = r["snapsotsIds"]
+        self.snapshots = r["snapshotIds"]
     
     def reload(self):
         groupid = self.groupid
@@ -57,13 +57,13 @@ class Client(object):
     
     
     def getCode(self):
-        return self.session.get(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)))).text.text
+        return self.session.get(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)))).text
     
     def request(self):
         d = {
             "action": "request"
         }
-        r = self.session.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
+        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
         return r.json().json().get("status", "viewer") == "editor"
     
     
@@ -71,7 +71,7 @@ class Client(object):
         d = {
             "action": "release"
         }
-        r = self.session.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
+        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
     
     def getCurrentEditor(self):
         self.reload()

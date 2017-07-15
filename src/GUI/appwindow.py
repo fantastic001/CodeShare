@@ -19,7 +19,7 @@ class AppWindow(QWidget):
 		self.setWindowTitle("Code Share")
 		
 		self.client = Client(argv[1], int(argv[2]))
-		self.client.join("gr1")
+		self.client.join(1)
 		self.thread = RequestThread(self.client)
 		self.thread.requestAccepted.connect(self.RqEditAcceptedCallback)
 		self.thread.codeChanged.connect(self.codeChangedCallback)

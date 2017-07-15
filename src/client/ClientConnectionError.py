@@ -1,0 +1,3 @@
+
+class ClientConnectionError(Exception):
+    pass
