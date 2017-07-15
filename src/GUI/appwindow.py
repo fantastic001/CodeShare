@@ -13,11 +13,12 @@ class AppWindow(QWidget):
 	
 	hlModes = ["none", "cpp", "pas"]
 
+	# args : asddress, port, username
 	def __init__(self, argv):
 		super(AppWindow, self).__init__()
 		self.setWindowTitle("Code Share")
 		
-		self.client = Client(argv[1], int(argv[2]), argv[3])
+		self.client = Client(argv[1], int(argv[2]))
 		self.client.join("gr1")
 		self.thread = RequestThread(self.client)
 		self.thread.requestAccepted.connect(self.RqEditAcceptedCallback)

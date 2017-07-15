@@ -1,6 +1,6 @@
 # coding: UTF-8
  
-import (random, sys, json , hashlib, time, os)
+import random, sys, json , hashlib, time, os
 
 from flask import Flask, request
 
@@ -74,7 +74,7 @@ def aut(group):
 		ret["token"] = tokenManager.newGuest()
 		if ret["token"] == -1: 
 			ret["errorCode"] = 4
-		elif ret["token"] == ""
+		elif ret["token"] == "":
 			ret["errorCode"] = 3
 	else: ret["errorCode"] = 2
 	return json.dumps(ret)
@@ -132,7 +132,7 @@ def userAction():
 				ret["errorCode"] = 3
 			else:
 				db.removeUser(tokenManager.getUser(request.header["token"]))
-	else ret["errorCode"] = 1
+	else: ret["errorCode"] = 1
 	return ret
 
 	
@@ -197,7 +197,7 @@ def grouAction():
 						ret["errorCode"] = 5
 					else:
 						del activeGroups[groupid]
-		else ret["errorCode"] = 1
+		else: ret["errorCode"] = 1
 	return ret
 	
 	
@@ -279,9 +279,11 @@ def codeAction(groupid, snapshotid):
 				ret["errorCode"] = 4
 			else:
 				if request.method == "GET":
-					
+					pass
 				elif request.method == "POST":
+					pass
 				elif request.method == "PUT":
+					pass
 				else:
 					ret["errorCode"] = 1
 	return ret
@@ -339,6 +341,7 @@ def getGroup(groupid):
 	if groupid in activeGroups:	return activeGroups[groupid]
 	else: return db.getGroup(groupid)
 
+# args: host ip address
 if __name__ == '__main__':
 	try:
 		db = UserDBJson("userdb/db.json")

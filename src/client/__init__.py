@@ -1,3 +1,3 @@
 
 from .client import * 
-from .ClientAuthException import * 
+from .ClientAuthError import * 

@@ -36,7 +36,7 @@ class TokenManager:
 		return "user" if token[0] == "u" else "guest"
 		
 	def containsUsername(self, username):
-		if len(username) == 0 return False
+		if len(username) == 0: return False
 		return (username in self.users)
 		
 	def containsToken(self, token):
@@ -51,13 +51,13 @@ class TokenManager:
 		return ""
 		
 	def removeByUser(self, username):
-		if not self.containsUsername(username) return False
+		if not self.containsUsername(username): return False
 		del self.tokens[self.users[username]]
 		del self.users[username]
 		return True
 		
 	def removeByToken(self, token):
-		if not self.containsToken(token) return False
+		if not self.containsToken(token): return False
 		if self.getSessionTypeFromToken(token) == "user":
 			del self.users[self.tokens[token]]
 		else:
