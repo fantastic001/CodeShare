@@ -48,7 +48,7 @@ class RequestThread(QThread):
 					if self.granted:
 						self.requestAccepted.emit()
 		
-			time.sleep(0.4)
+			time.sleep(0.1)
 	
 	def terminate(self):
 		self.running = False
