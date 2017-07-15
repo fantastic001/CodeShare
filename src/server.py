@@ -14,6 +14,8 @@ tokenManager = TokenManager()
 
 db = None
 
+activeGroupIds = []
+
 """	
 autentificate
 
@@ -199,6 +201,7 @@ def grouAction():
 	
 """ snapshots
 GET args : {}
+POST args : {}
 ret : {
 	"snapshotIds" : [<snapshotId>, ...]
 	"snapshotId" : <id of new ss>
@@ -233,9 +236,28 @@ def snapshotAction(groupid):
 				ret["errorCode"] = 1
 	return ret
 	
-	
-	
-	
+""" code
+header : {
+	"Accept" : <
+		"application/json" /
+		"text/plain" >
+}
+GET args : {}
+POST args : <code>
+PUT args : {
+	"action" : <"request" / "release">
+}
+ret : {
+	"errorCode" : <
+		0 - ok /
+		1 - invalid http method /
+		2 - token not sent /
+		3 - invalid groupid parameter 
+		4 - invalid snapshotid parameter >
+"""
+@app.route("/snapshots/<groupid>/<snapshotid>", methods=["GET", "POST", "PUT"])
+def snapshotAction(groupid, snapshotid):
+	pass
 	
 	
 	
