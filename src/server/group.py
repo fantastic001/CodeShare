@@ -3,7 +3,7 @@ from .snapshot import *
 
 class Group(object):
 	
-	def __init__(self, name, id=0, owner=None):
+	def __init__(self, name, id, owner=None):
 		self.name = name 
 		self.id = id 
 		self.editing = None
@@ -75,7 +75,7 @@ class Group(object):
 		self.snapshots.append(s)
 
 	def getSnapshots(self):
-		return self.napshots
+		return self.snapshots
 
 	def getCurrentSnapshot(self):
 		if len(self.snapshots) == 0:
@@ -93,3 +93,6 @@ class Group(object):
 
 	def setCode(self, code):
 		self.getCurrentSnapshot().setCode(code)
+		
+	def getOwner(self):
+		return self.owner

@@ -1,9 +1,9 @@
 
 class Snapshot(object):
 	
-	def __init__(self, id=0):
-		self.pages = [""] 
-		self.index = 0
+	def __init__(self, id):
+		# self.pages = [""] 
+		# self.index = 0
 		self.id = id
 
 	def addPage(self, code=""):
