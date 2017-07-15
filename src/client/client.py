@@ -63,8 +63,8 @@ class Client(object):
         d = {
             "action": "request"
         }
-        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
-        return r.json().json().get("status", "viewer") == "editor"
+        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot))), json=d)
+        return r.json().get("status", "viewer") == "editor"
     
     
     def release(self):
