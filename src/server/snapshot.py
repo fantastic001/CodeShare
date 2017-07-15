@@ -21,8 +21,10 @@ class Snapshot(object):
 	def getCurrentPage(self):
 		return self.pages[self.index]
 
+	"""
 	def setCode(self, code):
 		self.pages[self.index] = code
 
 	def getCode(self):
 		return self.pages[self.index]
+	"""

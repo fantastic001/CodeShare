@@ -12,17 +12,20 @@ class TokenManager:
 		self.guestsCo = 0
 		self.nextGuestId = 1
 		
-	def newUser(self, username):
-		if self.containsUsername(username): return ""
-		self.users[username] = { "token" : "u" + hashlib.sha256(username + str(time.time())).hexdigest(), "time" : time.time() }
-		self.tokens[self.users[username]["token"]] = username
-		return self.users[username]["token"]
+	def newUser(self, user):
+		if self.containsUser(user): return ""
+		self.users[user] = { "token" : "u" + 
+			hashlib.sha256((user.getName() + str(time.time())).encode("utf-8")).hexdigest(),
+			"time" : time.time() }
+		self.tokens[self.users[user]["token"]] = user
+		return self.users[user]["token"]
 	
 	def newGuest(self):
 		if self.guests == self.MAX_GUESTS: return "-1"
 		guestname = "Guest" + str(self.nextGuestId)
 		self.nextGuestId += 1
-		self.guests[guestname] = { "token" : "g" + hashlib.sha256((guestname + str(time.time())).encode("utf-8")).hexdigest(), 
+		self.guests[guestname] = { "token" : "g" + 
+			hashlib.sha256((guestname + str(time.time())).encode("utf-8")).hexdigest(), 
 			"time" : time.time() }
 		self.tokens[self.guests[guestname]["token"]] = guestname
 		self.guestsCo += 1
@@ -36,25 +39,26 @@ class TokenManager:
 	def getSessionTypeFromToken(self, token):
 		return "user" if token[0] == "u" else "guest"
 		
-	def containsUsername(self, username):
-		if len(username) == 0: return False
-		return (username in self.users)
+	def containsUser(self, user):
+		if user == None: return False
+		if len(user.getName()) == 0: return False
+		return (user in self.users)
 		
 	def containsToken(self, token):
 		return (token in self.tokens)
 		
-	def getToken(self, username):
-		if self.containsUsername(username): return self.users[username]
+	def getToken(self, user):
+		if self.containsUser(user): return self.users[user]
 		return ""
 		
 	def getUser(self, token):
 		if self.containsToken(token): return self.tokens[token]
 		return ""
 		
-	def removeByUser(self, username):
-		if not self.containsUsername(username): return False
-		del self.tokens[self.users[username]]
-		del self.users[username]
+	def removeByUser(self, user):
+		if not self.containsUsername(user): return False
+		del self.tokens[self.users[user]]
+		del self.users[user]
 		return True
 		
 	def removeByToken(self, token):
