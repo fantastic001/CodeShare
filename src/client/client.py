@@ -23,7 +23,8 @@ class Client(object):
         try:
             response = requests.post(self.getEndpointURL("/aut/"), json=data).json()
             if response["errorCode"] != 0:
-                raise ClientAuthException("Error while authenticating")
+                print(response["errorCode"])
+                raise ClientAuthError("Error while authenticating")
             else:
                 self.token = response["token"]
                 self.session = requests.Session()
@@ -53,7 +54,7 @@ class Client(object):
     def sendCode(self, code):
         if self.groupid == None:
             return
-        r = self.session.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), code, headers={"Content-type": "text/plain"})).json()
+        r = self.session.post(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot))), code, headers={"Content-type": "text/plain"}).json()
     
     
     def getCode(self):
@@ -71,7 +72,8 @@ class Client(object):
         d = {
             "action": "release"
         }
-        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot)), json=d))
+        r = self.session.put(self.getEndpointURL("/code/%d/%d" % (int(self.groupid), int(self.snapshot))), json=d)
+
     
     def getCurrentEditor(self):
         self.reload()
