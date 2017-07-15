@@ -1,23 +1,37 @@
 
 import requests 
 
+from .ClientAuthException import * 
+
 class Client(object):
 
-    def __init__(self, address, port, username):
+    def __init__(self, address, port, username=None, password=""):
         self.address = address
         self.port = port 
         self.username = username 
         self.groupname = ""
+        data = {}
+        if self.username == None:
+            data["type"] = "guest"
+        else:
+            data["type"] = "user"
+        data["username"] = self.username 
+        data["password"] = password
+        response = requests.post(self.getEndpointURL("/aut/", json=data))
+        if response["errorCode"] != 0:
+            raise ClientAuthException("Error while authenticating")
+        else:
+            self.token = response["token"]
+            self.session = requests.Session()
+            self.session.headers.update({"token": self.token})
 
-    def authenticate(self, password):
-        pass
     
     def getEndpointURL(self, endpoint):
         return "http://%s:%d%s" % (self.address, self.port, endpoint)
 
     def join(self, groupname):
         self.groupname = groupname
-        r = requests.post(self.getEndpointURL("/groups/%s/register/" % groupname), json={"name": self.username})
+        r = self.session.post(self.getEndpointURL("/groups/%s/register/" % groupname), json={"name": self.username})
         print(r.status_code)
 
     def sendCode(self, code):
