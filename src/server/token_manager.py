@@ -19,10 +19,11 @@ class TokenManager:
 		return self.users[username]["token"]
 	
 	def newGuest(self):
-		if self.guests == MAX_GUESTS: return "-1"
+		if self.guests == self.MAX_GUESTS: return "-1"
 		guestname = "Guest" + str(self.nextGuestId)
 		self.nextGuestId += 1
-		self.guests[guestname] = { "token" : "g" + hashlib.sha256(guestname + str(time.time())).hexdigest(), "time" : time.time() }
+		self.guests[guestname] = { "token" : "g" + hashlib.sha256((guestname + str(time.time())).encode("utf-8")).hexdigest(), 
+			"time" : time.time() }
 		self.tokens[self.guests[guestname]["token"]] = guestname
 		self.guestsCo += 1
 		return self.guests[guestname]["token"]
