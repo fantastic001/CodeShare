@@ -1,10 +1,6 @@
 # coding: UTF-8
  
-import random
-import sys
-import json 
-import hashlib
-import time
+import (random, sys, json , hashlib, time, os)
 
 from flask import Flask, request
 
@@ -98,13 +94,13 @@ DELETE args : {
 ret : {
 	"errorCode" : <
 		0 - ok / 
-		1 - token not sent /
-		2 - invalid http method 
+		1 - invalid http method /
+		2 - token not sent /
 		3 - invalid username or password > 
 }
 """
 @app.route("/user/", methods=["POST", "PUT", "DELETE"])
-def userAction(username):
+def userAction():
 	ret = { "errorCode" : 0 }
 	if request.method == "POST":
 		username = request.get_json().get("username", "")
@@ -114,25 +110,132 @@ def userAction(username):
 		else:
 			db.registerUser(username, hashPassword(password))
 	elif request.method == "PUT":
-		if not "token" in request.header: ret["errorCode"] = 1
-		password = request.get_json().get("password", "")
-		if len(password) == 0: 
-			ret["errorCode"] = 3
+		if not "token" in request.header: 
+			ret["errorCode"] = 2
 		else:
-			user = db.getUser(tokenManager.getUser(requesr.header["token"]))
-			user.setPassWord(hashPassword(password))
-			db.updateUser(user)
+			password = request.get_json().get("password", "")
+			if len(password) == 0: 
+				ret["errorCode"] = 3
+			else:
+				user = db.getUser(tokenManager.getUser(request.header["token"]))
+				user.setPassWord(hashPassword(password))
+				db.updateUser(user)
 	elif request.method == "DELETE":
-		if not "token" in request.header: ret["errorCode"] = 1
-		password = request.get_json().get("password", "")
-		if len(password) == 0: 
+		if not "token" in request.header: 
+			ret["errorCode"] = 2
+		else:
+			password = request.get_json().get("password", "")
+			if len(password) == 0: 
+				ret["errorCode"] = 3
+			else:
+				db.removeUser(tokenManager.getUser(request.header["token"]))
+	else ret["errorCode"] = 1
+	return ret
+
+	
+""" group
+GET atgs : {}
+POST args : {
+	"groupname" : <groupname>
+}
+PUT args : {
+}
+DELETE args : {
+	"groupid" : <groupid>
+}
+ret : {
+	"groupid" : <groupid>
+	"ownedGroups" : [<groupid>, ...]
+	"errorCode" : <
+		0 - ok /
+		1 - invalid http method /
+		2 - token not sent /
+		3 - invalid group id /
+		4 - only owner can delete the group
+		5 - unable to delete group >
+}
+"""
+@app.route("/grups/", methods=["GET", "POST", "PUT", "DELETE"])
+def grouAction():
+	ret = { "errorCode" : 0 }
+	if not "token" in request.header: 
+		ret["errorCode"] = 2
+	else:
+		user = db.getUser(tokenManager.getUser(request.header["token"]))
+		if request.method == "GET":
+			ret["ownedGroups"] = []
+			for group in db.getGroups():
+				if group.getOwner().getName() == user.getName():
+					ret["ownedGroups"].append(group.getId())
+		elif request.method == "POST":
+			groupname = request.get_json().get("groupname", "")
+			group = db.createGroup(user, groupname)
+			dir = "snapshots/" + str(group.getId())
+			if not os.path.exists(dir): os.mkdir(dir)
+			open("0.snap", "w")
+			ret["groupid"] = group.getId()
+		elif request.method == "PUT":
+			groupid = request.get_json().get("groupid", "")
+			group = db.getGroup(int(groupid))
+			if group == None:
+				ret["errorCode"] = 3
+			else:
+				pass
+		elif request.method == "DELETE":
+			# delete files form disc
+			groupid = request.get_json().get("groupid", "")
+			group = db.getGroup(groupid)
+			if group == None:
+				ret["errorCode"] = 3
+			else:
+				if group.getOwner().getName() != user.getName():
+					ret["errorCode"] = 4
+				else:
+					if db.removeGroup() == False:
+						ret["errorCode"] = 5
+		else ret["errorCode"] = 1
+	return ret
+	
+	
+""" snapshots
+GET args : {}
+ret : {
+	"snapshotIds" : [<snapshotId>, ...]
+	"snapshotId" : <id of new ss>
+	"errorCode" : <
+		0 - ok /
+		1 - invalid http method /
+		2 - token not sent /
+		3 - invalid groupid parameter >
+}
+"""
+@app.route("/snapshots/<groupid>", methods=["GET", "POST"])
+def snapshotAction(groupid):
+	ret = { "errorCode" : 0 }
+	if not "token" in request.header: 
+		ret["errorCode"] = 2
+	else:
+		id = -1
+		try: id = int(groupid)
+		except: pass
+		group = db.getGroup(id)
+		if group == None:
 			ret["errorCode"] = 3
 		else:
-			db.removeUser(tokenManager.getUser(requesr.header["token"]))
-	else ret["errorCode"] = 2
-	return
-
-
+			if request.method == "GET":
+				ret[snapshotIds] = [ss.getId() for ss in group.getSnapshots()]
+			elif request.method == "POST":
+				newId = group.getSnapshots()[-1].getId() + 1
+				# copy current text file to new file
+				group.addSnapshot(Snapshot(newId))
+				ret["snapshotId"] = newId
+			else:
+				ret["errorCode"] = 1
+	return ret
+	
+	
+	
+	
 	
 	
 	

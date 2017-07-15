@@ -51,7 +51,7 @@ class UserDBJson:
 		if self.getUser(username) != None: return None
 		self.users.append({ 
 			"username" : username, 
-			"password" : hashlib.sha256(password.encode("utf-8")).hexdigest() })
+			"password" : password })
 		return self.genUser(self.users[-1])
 		
 	def updateUser(self, user):
@@ -62,7 +62,7 @@ class UserDBJson:
 	def confirmUserLogin(self, username, password):
 		user = self.getUser(username)
 		if user == None: return False
-		return True if user[password] == hashlib.sha256(password.encode("utf-8")).hexdigest() else False
+		return True if user.getPassword() == password else False
 		
 	def removeUser(self, username):
 		for user in self.users:
