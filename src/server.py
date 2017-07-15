@@ -14,7 +14,8 @@ tokenManager = TokenManager()
 
 db = None
 
-activeGroupIds = []
+# activeGroups = { <groupid> : Group }
+activeGroups = {}
 
 """	
 autentificate
@@ -153,7 +154,7 @@ ret : {
 		1 - invalid http method /
 		2 - token not sent /
 		3 - invalid group id /
-		4 - only owner can delete the group
+		4 - only owner can delete the group /
 		5 - unable to delete group >
 }
 """
@@ -177,16 +178,15 @@ def grouAction():
 			open("0.snap", "w")
 			ret["groupid"] = group.getId()
 		elif request.method == "PUT":
-			groupid = request.get_json().get("groupid", "")
-			group = db.getGroup(int(groupid))
+			group = getGroup(int(request.get_json().get("groupid", "")))
 			if group == None:
 				ret["errorCode"] = 3
 			else:
-				pass
+				pass # group info update
 		elif request.method == "DELETE":
 			# delete files form disc
 			groupid = request.get_json().get("groupid", "")
-			group = db.getGroup(groupid)
+			group = getGroup(groupid)
 			if group == None:
 				ret["errorCode"] = 3
 			else:
@@ -195,6 +195,8 @@ def grouAction():
 				else:
 					if db.removeGroup() == False:
 						ret["errorCode"] = 5
+					else:
+						del activeGroups[groupid]
 		else ret["errorCode"] = 1
 	return ret
 	
@@ -205,6 +207,7 @@ POST args : {}
 ret : {
 	"snapshotIds" : [<snapshotId>, ...]
 	"snapshotId" : <id of new ss>
+	"editor" : <username>
 	"errorCode" : <
 		0 - ok /
 		1 - invalid http method /
@@ -221,12 +224,16 @@ def snapshotAction(groupid):
 		id = -1
 		try: id = int(groupid)
 		except: pass
-		group = db.getGroup(id)
+		group = getGroup(id)
 		if group == None:
 			ret["errorCode"] = 3
 		else:
 			if request.method == "GET":
 				ret[snapshotIds] = [ss.getId() for ss in group.getSnapshots()]
+				if not snapshotid in activeGroups:
+					activeGroups[snapshotId] = { "editor" : "", "snapshot" : len(group.getSnapshots) - 1 }
+				ret[snapshotid] = activeGroups[group.getId()]["snapshot"]
+				ret[editor] = activeGroups[group.getId()]["snapshot"]
 			elif request.method == "POST":
 				newId = group.getSnapshots()[-1].getId() + 1
 				# copy current text file to new file
@@ -237,28 +244,47 @@ def snapshotAction(groupid):
 	return ret
 	
 """ code
-header : {
-	"Accept" : <
-		"application/json" /
-		"text/plain" >
-}
 GET args : {}
 POST args : <code>
 PUT args : {
 	"action" : <"request" / "release">
 }
 ret : {
+	"status" : <"editor" / "viewer">
 	"errorCode" : <
 		0 - ok /
 		1 - invalid http method /
 		2 - token not sent /
-		3 - invalid groupid parameter 
+		3 - invalid groupid parameter /
 		4 - invalid snapshotid parameter >
 """
-@app.route("/snapshots/<groupid>/<snapshotid>", methods=["GET", "POST", "PUT"])
-def snapshotAction(groupid, snapshotid):
-	pass
-	
+@app.route("/code/<groupid>/<snapshotid>", methods=["GET", "POST", "PUT"])
+def codeAction(groupid, snapshotid):
+	ret = { "errorCode" : 0 }
+	if not "token" in request.header: 
+		ret["errorCode"] = 2
+	else:
+		id = -1
+		try: id = int(groupid)
+		except: pass
+		group = getGroup(id)
+		if group == None:
+			ret["errorCode"] = 3
+		else:
+			id = -1
+			try: id = int(snapshotid)
+			except: pass
+			group = db.getGroup(id)
+			if group == None:
+				ret["errorCode"] = 4
+			else:
+				if request.method == "GET":
+					
+				elif request.method == "POST":
+				elif request.method == "PUT":
+				else:
+					ret["errorCode"] = 1
+	return ret
 	
 	
 	
@@ -308,6 +334,10 @@ def code_handling(group):
 		
 def hashPassword(password):
 	return hashlib.sha256(password.encode("utf-8")).hexdigest()
+	
+def getGroup(groupid):
+	if groupid in activeGroups:	return activeGroups[groupid]
+	else: return db.getGroup(groupid)
 
 if __name__ == '__main__':
 	try:
